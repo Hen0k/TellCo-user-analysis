@@ -115,12 +115,12 @@ class Analysis:
             modes[col] = numericals[col].mode()[0]
         descriptions['mode'] = modes.values()
 
-        descriptions['coefficent_of_variance'] = descriptions['std'].values / \
+        descriptions['CoV'] = descriptions['std'].values / \
             descriptions['mean'].values
-        descriptions['skewness'] = numericals.skew()
+        descriptions['skew'] = numericals.skew()
         descriptions['kurtosis'] = numericals.kurtosis().values
-        Q1 = numericals.quartile(0.25)
-        Q3 = numericals.quartile(0.75)
+        Q1 = numericals.quantile(0.25)
+        Q3 = numericals.quantile(0.75)
         IQR = Q3 - Q1
         descriptions['iqr'] = IQR
         descriptions['missing_counts'] = numericals.isna().sum()
@@ -257,7 +257,7 @@ class CleanDataFrame:
         scalled.columns = self.get_numerical_columns(df)
 
         return scalled
-    
+
     def minmax_scale(self, df: pd.DataFrame) -> pd.DataFrame:
         scaller = MinMaxScaler()
         scalled = pd.DataFrame(scaller.fit_transform(
