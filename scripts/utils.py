@@ -129,15 +129,15 @@ class CleanDataFrame:
                             'Other UL (Bytes)',
                             'Total UL (Bytes)',
                             'Total DL (Bytes)',
-        ]
+                            ]
         return df[relevant_columns]
-    
+
     def rename_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         df.rename(columns={
             "Dur. (ms).1": "Dur. ms",
             "Dur. (ms)": "Dur. s"},
             inplace=True)
-        
+
         return df
 
     def fix_datatypes(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -146,12 +146,21 @@ class CleanDataFrame:
         Start and End -> from string to datetime.
         Bearer Id, IMSI, MSISDN, IMEI -> From number to string
         """
-        df['Start'] = pd.to_datetime(df['Start'])
-        df['End'] = pd.to_datetime(df['End'])
-        df['IMSI'] = df['IMSI'].astype(str)
-        df['MSISDN/Number'] = df['MSISDN/Number'].astype(str)
-        df['IMEI'] = df['IMEI'].astype(str)
-        df['Bearer Id'] = df['Bearer Id'].astype(str)
+        datetime_columns = ['Start',
+                            'End', ]
+        string_columns = [
+            'IMSI',
+            'MSISDN/Number',
+            'IMEI',
+            'Bearer Id'
+        ]
+        df_columns = df.columns
+        for col in string_columns:
+            if col in df_columns:
+                df[col] = df[col].astype(str)
+        for col in datetime_columns:
+            if col in df_columns:
+                df[col] = pd.to_datetime(df[col])
 
         return df
 
