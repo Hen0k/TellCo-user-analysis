@@ -104,6 +104,34 @@ class Plotters:
 
 
 class CleanDataFrame:
+
+    def isolate_relavant_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        relevant_columns = ['Bearer Id',
+                            'Dur. ms',
+                            'MSISDN/Number',
+                            'Handset Manufacturer',
+                            'Handset Type',
+                            'Activity Duration DL (ms)',
+                            'Activity Duration UL (ms)',
+                            'Social Media DL (Bytes)',
+                            'Social Media UL (Bytes)',
+                            'Google DL (Bytes)',
+                            'Google UL (Bytes)',
+                            'Email DL (Bytes)',
+                            'Email UL (Bytes)',
+                            'Youtube DL (Bytes)',
+                            'Youtube UL (Bytes)',
+                            'Netflix DL (Bytes)',
+                            'Netflix UL (Bytes)',
+                            'Gaming DL (Bytes)',
+                            'Gaming UL (Bytes)',
+                            'Other DL (Bytes)',
+                            'Other UL (Bytes)',
+                            'Total UL (Bytes)',
+                            'Total DL (Bytes)',
+        ]
+        return df[relevant_columns]
+    
     def rename_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         df.rename(columns={
             "Dur. (ms).1": "Dur. ms",
@@ -111,7 +139,7 @@ class CleanDataFrame:
             inplace=True)
         
         return df
-        
+
     def fix_datatypes(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Takes in the tellco dataframe an casts columns to proper data types.
