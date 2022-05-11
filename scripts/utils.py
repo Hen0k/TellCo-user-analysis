@@ -103,7 +103,36 @@ class Plotters:
         return top_n_count
 
 
+class Analysis:
+    def get_univariate_analysis(self, df: pd.DataFrame) -> pd.DataFrame:
+        numerical_columns = CleanDataFrame.get_numerical_columns(df)
+        numericals = df[numerical_columns]
+        descriptions = numericals.describe().transpose()
+
+        modes = {}
+        for col in numericals.columns:
+            modes[col] = numericals[col].mode()[0]
+        descriptions['mode'] = modes.values()
+
+        descriptions['coefficent_of_variance'] = descriptions['std'].values / descriptions['mean'].values
+        descriptions['skewness'] = numericals.skew()
+        descriptions['kurtosis'] = numericals.kurtosis().values
+        descriptions['missing_counts'] = numericals.isna().sum()
+
+        return descriptions
+
+
 class CleanDataFrame:
+
+    @staticmethod
+    def get_numerical_columns(df: pd.DataFrame) -> list:
+        numerical_columns = df.select_dtypes(include='number').columns.tolist()
+        return numerical_columns
+
+    @staticmethod
+    def get_categorical_columns(df: pd.DataFrame) -> list:
+        categorical_columns = df.select_dtypes(include=['object']).columns.tolist()
+        return categorical_columns
 
     def isolate_relavant_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         relevant_columns = ['Bearer Id',
