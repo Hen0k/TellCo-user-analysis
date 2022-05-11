@@ -3,6 +3,9 @@ from tkinter import W
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+# pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
 
 
 class DataLoader:
@@ -98,3 +101,77 @@ class Plotters:
         axis = top_n_count.plot.bar(
             color=color, title=title, fontsize=20, figsize=(self.w, self.h))
         return top_n_count
+
+
+class CleanDataFrame:
+    def rename_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        df.rename(columns={
+            "Dur. (ms).1": "Dur. ms",
+            "Dur. (ms)": "Dur. s"},
+            inplace=True)
+        
+        return df
+        
+    def fix_datatypes(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Takes in the tellco dataframe an casts columns to proper data types.
+        Start and End -> from string to datetime.
+        Bearer Id, IMSI, MSISDN, IMEI -> From number to string
+        """
+        df['Start'] = pd.to_datetime(df['Start'])
+        df['End'] = pd.to_datetime(df['End'])
+        df['IMSI'] = df['IMSI'].astype(str)
+        df['MSISDN/Number'] = df['MSISDN/Number'].astype(str)
+        df['IMEI'] = df['IMEI'].astype(str)
+        df['Bearer Id'] = df['Bearer Id'].astype(str)
+
+        return df
+
+    def percent_missing(self, df):
+        """
+        Print out the percentage of missing entries in a dataframe
+        """
+        # Calculate total number of cells in dataframe
+        totalCells = np.product(df.shape)
+
+        # Count number of missing values per column
+        missingCount = df.isnull().sum()
+
+        # Calculate total number of missing values
+        totalMissing = missingCount.sum()
+
+        # Calculate percentage of missing values
+        print("The dataset contains", round(
+            ((totalMissing/totalCells) * 100), 2), "%", "missing values.")
+
+    def handle_missing_value(self, df: pd.DataFrame, verbose=True) -> pd.DataFrame:
+        if verbose:
+            self.percent_missing(df)
+            print(df.isnull().sum())
+        numericals = df.select_dtypes(include='number').columns.tolist()
+        objects = df.select_dtypes(exclude=['number']).columns.tolist()
+        # if numericals:
+        numeric_pipeline = Pipeline(steps=[
+            ('impute', SimpleImputer(strategy='median')),
+            # ('scale', MinMaxScaler()),
+            # ('normalize', Normalizer()),
+        ])
+        cleaned_numerical = pd.DataFrame(
+            numeric_pipeline.fit_transform(df[numericals]))
+        cleaned_numerical.columns = numericals
+
+        # if objects:
+        object_pipeline = Pipeline(steps=[
+            ('impute', SimpleImputer(strategy='most_frequent'))
+        ])
+        cleaned_object = pd.DataFrame(
+            object_pipeline.fit_transform(df[objects]))
+        cleaned_object.columns = objects
+
+        # if cleaned_object and cleaned_numerical:
+        cleaned_df = pd.concat([cleaned_object, cleaned_numerical], axis=1)
+        if verbose:
+            print(cleaned_df.info())
+            print(
+                "="*10, "missing values imputed, collumns scalled, and normalized", "="*10)
+        return cleaned_df
