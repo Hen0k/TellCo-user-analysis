@@ -119,6 +119,10 @@ class Analysis:
             descriptions['mean'].values
         descriptions['skewness'] = numericals.skew()
         descriptions['kurtosis'] = numericals.kurtosis().values
+        Q1 = numericals.quartile(0.25)
+        Q3 = numericals.quartile(0.75)
+        IQR = Q3 - Q1
+        descriptions['iqr'] = IQR
         descriptions['missing_counts'] = numericals.isna().sum()
 
         return descriptions
