@@ -6,6 +6,7 @@ import seaborn as sns
 # pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, Normalizer
 
 
 class DataLoader:
@@ -114,7 +115,8 @@ class Analysis:
             modes[col] = numericals[col].mode()[0]
         descriptions['mode'] = modes.values()
 
-        descriptions['coefficent_of_variance'] = descriptions['std'].values / descriptions['mean'].values
+        descriptions['coefficent_of_variance'] = descriptions['std'].values / \
+            descriptions['mean'].values
         descriptions['skewness'] = numericals.skew()
         descriptions['kurtosis'] = numericals.kurtosis().values
         descriptions['missing_counts'] = numericals.isna().sum()
@@ -131,7 +133,8 @@ class CleanDataFrame:
 
     @staticmethod
     def get_categorical_columns(df: pd.DataFrame) -> list:
-        categorical_columns = df.select_dtypes(include=['object']).columns.tolist()
+        categorical_columns = df.select_dtypes(
+            include=['object']).columns.tolist()
         return categorical_columns
 
     def isolate_relavant_columns(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -240,4 +243,29 @@ class CleanDataFrame:
             print(cleaned_df.info())
             print(
                 "="*10, "missing values imputed, collumns scalled, and normalized", "="*10)
+
         return cleaned_df
+
+    def normal_scale(self, df: pd.DataFrame) -> pd.DataFrame:
+        scaller = StandardScaler()
+        scalled = pd.DataFrame(scaller.fit_transform(
+            df[self.get_numerical_columns(df)]))
+        scalled.columns = self.get_numerical_columns(df)
+
+        return scalled
+    
+    def minmax_scale(self, df: pd.DataFrame) -> pd.DataFrame:
+        scaller = MinMaxScaler()
+        scalled = pd.DataFrame(scaller.fit_transform(
+            df[self.get_numerical_columns(df)]))
+        scalled.columns = self.get_numerical_columns(df)
+
+        return scalled
+
+    def normalize(self, df: pd.DataFrame) -> pd.DataFrame:
+        normalizer = Normalizer()
+        normalized = pd.DataFrame(normalizer.fit_transform(
+            df[self.get_numerical_columns(df)]))
+        normalized.columns = self.get_numerical_columns(df)
+
+        return normalized
