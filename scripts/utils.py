@@ -127,6 +127,13 @@ class Analysis:
 
         return descriptions
 
+    @staticmethod
+    def get_top_ten(df: pd.DataFrame, column: str) -> pd.DataFrame:
+        df.sort_values(column, ascending=False, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+
+        return df.head(10)
+
 
 class CleanDataFrame:
 
@@ -266,16 +273,20 @@ class CleanDataFrame:
 
     def minmax_scale(self, df: pd.DataFrame) -> pd.DataFrame:
         scaller = MinMaxScaler()
-        scalled = pd.DataFrame(scaller.fit_transform(
-            df[self.get_numerical_columns(df)]))
-        scalled.columns = self.get_numerical_columns(df)
+        scalled = pd.DataFrame(
+            scaller.fit_transform(
+                df[self.get_numerical_columns(df)]),
+            columns=self.get_numerical_columns(df)
+        )
 
         return scalled
 
     def normalize(self, df: pd.DataFrame) -> pd.DataFrame:
         normalizer = Normalizer()
-        normalized = pd.DataFrame(normalizer.fit_transform(
-            df[self.get_numerical_columns(df)]))
-        normalized.columns = self.get_numerical_columns(df)
+        normalized = pd.DataFrame(
+            normalizer.fit_transform(
+                df[self.get_numerical_columns(df)]),
+            columns=self.get_numerical_columns(df)
+        )
 
         return normalized
