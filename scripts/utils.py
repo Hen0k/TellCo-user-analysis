@@ -1,6 +1,7 @@
 import os
-from tkinter import W
+from typing import Union
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 # pipeline
@@ -133,6 +134,14 @@ class Analysis:
         df.reset_index(drop=True, inplace=True)
 
         return df.head(10)
+    
+    def get_missing_entries_count(self, df: pd.DataFrame) -> Union[pd.Series, list]:
+        cols_missing_val_count = df.isnull().sum()
+        cols_missing_val_count = cols_missing_val_count[cols_missing_val_count!=0]
+        cols_missing_val = cols_missing_val_count.index.values
+        cols_missing_val_count
+
+        return cols_missing_val_count, cols_missing_val
 
 
 class CleanDataFrame:
@@ -223,6 +232,36 @@ class CleanDataFrame:
         # Calculate percentage of missing values
         print("The dataset contains", round(
             ((totalMissing/totalCells) * 100), 2), "%", "missing values.")
+
+    def get_mct(self, series: pd.Series, measure: str):
+        """
+        get mean, median or mode depending on measure
+        """
+        measure = measure.lower()
+        if measure == "mean":
+            return series.mean()
+        elif measure == "median":
+            return series.median()
+        elif measure == "mode":
+            return series.mode()[0]
+
+    def replace_missing(self, df: pd.DataFrame, columns: str, method: str) -> pd.DataFrame:
+        
+        for column in columns:
+            nulls = df[column].isnull()
+            indecies = [i for i, v in zip(nulls.index, nulls.values) if v]
+            replace_with = self.get_mct(df[column], method)
+            df.loc[indecies, column] = replace_with
+            
+
+        return df
+    
+    
+    def remove_null_row(self, df: pd.DataFrame, columns: str) -> pd.DataFrame:
+        for column in columns:
+            df = df[~ df[column].isna()]
+        
+        return df
 
     def handle_missing_value(self, df: pd.DataFrame, verbose=True) -> pd.DataFrame:
         if verbose:
