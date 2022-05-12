@@ -221,34 +221,40 @@ class CleanDataFrame:
         if verbose:
             self.percent_missing(df)
             print(df.isnull().sum())
-        numericals = df.select_dtypes(include='number').columns.tolist()
-        objects = df.select_dtypes(exclude=['number']).columns.tolist()
+        numericals = self.get_numerical_columns(df)
+        objects = self.get_categorical_columns(df)
+        for col in objects:
+            df = df[df[col] != "nan"]
+            # df[col].fillna(df[col].mode(), inplace=True)
+            # df[col].dropna(inplace=True)
+        for col in numericals:
+            df[col].fillna(df[col].median(), inplace=True)
         # if numericals:
-        numeric_pipeline = Pipeline(steps=[
-            ('impute', SimpleImputer(strategy='median')),
-            # ('scale', MinMaxScaler()),
-            # ('normalize', Normalizer()),
-        ])
-        cleaned_numerical = pd.DataFrame(
-            numeric_pipeline.fit_transform(df[numericals]))
-        cleaned_numerical.columns = numericals
+        # numeric_pipeline = Pipeline(steps=[
+        #     ('impute', SimpleImputer(strategy='median')),
+        #     # ('scale', MinMaxScaler()),
+        #     # ('normalize', Normalizer()),
+        # ])
+        # cleaned_numerical = pd.DataFrame(
+        #     numeric_pipeline.fit_transform(df[numericals]))
+        # cleaned_numerical.columns = numericals
 
-        # if objects:
-        object_pipeline = Pipeline(steps=[
-            ('impute', SimpleImputer(strategy='most_frequent'))
-        ])
-        cleaned_object = pd.DataFrame(
-            object_pipeline.fit_transform(df[objects]))
-        cleaned_object.columns = objects
+        # # if objects:
+        # object_pipeline = Pipeline(steps=[
+        #     ('impute', SimpleImputer(strategy='most_frequent'))
+        # ])
+        # cleaned_object = pd.DataFrame(
+        #     object_pipeline.fit_transform(df[objects]))
+        # cleaned_object.columns = objects
 
-        # if cleaned_object and cleaned_numerical:
-        cleaned_df = pd.concat([cleaned_object, cleaned_numerical], axis=1)
+        # # if cleaned_object and cleaned_numerical:
+        # cleaned_df = pd.concat([cleaned_object, cleaned_numerical], axis=1)
         if verbose:
-            print(cleaned_df.info())
+            print(df.info())
             print(
                 "="*10, "missing values imputed, collumns scalled, and normalized", "="*10)
 
-        return cleaned_df
+        return df
 
     def normal_scale(self, df: pd.DataFrame) -> pd.DataFrame:
         scaller = StandardScaler()
