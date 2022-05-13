@@ -129,9 +129,10 @@ class Analysis:
         return descriptions
 
     @staticmethod
-    def get_top_ten(df: pd.DataFrame, column: str) -> pd.DataFrame:
+    def get_top_ten(df: pd.DataFrame, column: str, drop_index: bool=True) -> pd.DataFrame:
         df.sort_values(column, ascending=False, inplace=True)
-        df.reset_index(drop=True, inplace=True)
+        if drop_index:
+            df.reset_index(drop=True, inplace=True)
 
         return df.head(10)
     
@@ -192,7 +193,7 @@ class CleanDataFrame:
 
         return df
 
-    def fix_datatypes(self, df: pd.DataFrame) -> pd.DataFrame:
+    def fix_datatypes(self, df: pd.DataFrame, column: str=None, to_type: type=None) -> pd.DataFrame:
         """
         Takes in the tellco dataframe an casts columns to proper data types.
         Start and End -> from string to datetime.
@@ -213,6 +214,8 @@ class CleanDataFrame:
         for col in datetime_columns:
             if col in df_columns:
                 df[col] = pd.to_datetime(df[col])
+        if column and to_type:
+            df[column] = df[column].astype(to_type)
 
         return df
 
