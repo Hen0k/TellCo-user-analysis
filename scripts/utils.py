@@ -1,6 +1,7 @@
 import os
-from tkinter import W
+from typing import Union
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 # pipeline
@@ -127,6 +128,22 @@ class Analysis:
 
         return descriptions
 
+    @staticmethod
+    def get_top_ten(df: pd.DataFrame, column: str, drop_index: bool=True) -> pd.DataFrame:
+        df.sort_values(column, ascending=False, inplace=True)
+        if drop_index:
+            df.reset_index(drop=True, inplace=True)
+
+        return df.head(10)
+    
+    def get_missing_entries_count(self, df: pd.DataFrame) -> Union[pd.Series, list]:
+        cols_missing_val_count = df.isnull().sum()
+        cols_missing_val_count = cols_missing_val_count[cols_missing_val_count!=0]
+        cols_missing_val = cols_missing_val_count.index.values
+        cols_missing_val_count
+
+        return cols_missing_val_count, cols_missing_val
+
 
 class CleanDataFrame:
 
@@ -176,7 +193,7 @@ class CleanDataFrame:
 
         return df
 
-    def fix_datatypes(self, df: pd.DataFrame) -> pd.DataFrame:
+    def fix_datatypes(self, df: pd.DataFrame, column: str=None, to_type: type=None) -> pd.DataFrame:
         """
         Takes in the tellco dataframe an casts columns to proper data types.
         Start and End -> from string to datetime.
@@ -197,6 +214,8 @@ class CleanDataFrame:
         for col in datetime_columns:
             if col in df_columns:
                 df[col] = pd.to_datetime(df[col])
+        if column and to_type:
+            df[column] = df[column].astype(to_type)
 
         return df
 
@@ -217,38 +236,74 @@ class CleanDataFrame:
         print("The dataset contains", round(
             ((totalMissing/totalCells) * 100), 2), "%", "missing values.")
 
+    def get_mct(self, series: pd.Series, measure: str):
+        """
+        get mean, median or mode depending on measure
+        """
+        measure = measure.lower()
+        if measure == "mean":
+            return series.mean()
+        elif measure == "median":
+            return series.median()
+        elif measure == "mode":
+            return series.mode()[0]
+
+    def replace_missing(self, df: pd.DataFrame, columns: str, method: str) -> pd.DataFrame:
+        
+        for column in columns:
+            nulls = df[column].isnull()
+            indecies = [i for i, v in zip(nulls.index, nulls.values) if v]
+            replace_with = self.get_mct(df[column], method)
+            df.loc[indecies, column] = replace_with
+            
+
+        return df
+    
+    
+    def remove_null_row(self, df: pd.DataFrame, columns: str) -> pd.DataFrame:
+        for column in columns:
+            df = df[~ df[column].isna()]
+        
+        return df
+
     def handle_missing_value(self, df: pd.DataFrame, verbose=True) -> pd.DataFrame:
         if verbose:
             self.percent_missing(df)
             print(df.isnull().sum())
-        numericals = df.select_dtypes(include='number').columns.tolist()
-        objects = df.select_dtypes(exclude=['number']).columns.tolist()
+        numericals = self.get_numerical_columns(df)
+        objects = self.get_categorical_columns(df)
+        for col in objects:
+            df = df[df[col] != "nan"]
+            # df[col].fillna(df[col].mode(), inplace=True)
+            # df[col].dropna(inplace=True)
+        for col in numericals:
+            df[col].fillna(df[col].median(), inplace=True)
         # if numericals:
-        numeric_pipeline = Pipeline(steps=[
-            ('impute', SimpleImputer(strategy='median')),
-            # ('scale', MinMaxScaler()),
-            # ('normalize', Normalizer()),
-        ])
-        cleaned_numerical = pd.DataFrame(
-            numeric_pipeline.fit_transform(df[numericals]))
-        cleaned_numerical.columns = numericals
+        # numeric_pipeline = Pipeline(steps=[
+        #     ('impute', SimpleImputer(strategy='median')),
+        #     # ('scale', MinMaxScaler()),
+        #     # ('normalize', Normalizer()),
+        # ])
+        # cleaned_numerical = pd.DataFrame(
+        #     numeric_pipeline.fit_transform(df[numericals]))
+        # cleaned_numerical.columns = numericals
 
-        # if objects:
-        object_pipeline = Pipeline(steps=[
-            ('impute', SimpleImputer(strategy='most_frequent'))
-        ])
-        cleaned_object = pd.DataFrame(
-            object_pipeline.fit_transform(df[objects]))
-        cleaned_object.columns = objects
+        # # if objects:
+        # object_pipeline = Pipeline(steps=[
+        #     ('impute', SimpleImputer(strategy='most_frequent'))
+        # ])
+        # cleaned_object = pd.DataFrame(
+        #     object_pipeline.fit_transform(df[objects]))
+        # cleaned_object.columns = objects
 
-        # if cleaned_object and cleaned_numerical:
-        cleaned_df = pd.concat([cleaned_object, cleaned_numerical], axis=1)
+        # # if cleaned_object and cleaned_numerical:
+        # cleaned_df = pd.concat([cleaned_object, cleaned_numerical], axis=1)
         if verbose:
-            print(cleaned_df.info())
+            print(df.info())
             print(
                 "="*10, "missing values imputed, collumns scalled, and normalized", "="*10)
 
-        return cleaned_df
+        return df
 
     def normal_scale(self, df: pd.DataFrame) -> pd.DataFrame:
         scaller = StandardScaler()
@@ -260,16 +315,20 @@ class CleanDataFrame:
 
     def minmax_scale(self, df: pd.DataFrame) -> pd.DataFrame:
         scaller = MinMaxScaler()
-        scalled = pd.DataFrame(scaller.fit_transform(
-            df[self.get_numerical_columns(df)]))
-        scalled.columns = self.get_numerical_columns(df)
+        scalled = pd.DataFrame(
+            scaller.fit_transform(
+                df[self.get_numerical_columns(df)]),
+            columns=self.get_numerical_columns(df)
+        )
 
         return scalled
 
     def normalize(self, df: pd.DataFrame) -> pd.DataFrame:
         normalizer = Normalizer()
-        normalized = pd.DataFrame(normalizer.fit_transform(
-            df[self.get_numerical_columns(df)]))
-        normalized.columns = self.get_numerical_columns(df)
+        normalized = pd.DataFrame(
+            normalizer.fit_transform(
+                df[self.get_numerical_columns(df)]),
+            columns=self.get_numerical_columns(df)
+        )
 
         return normalized
