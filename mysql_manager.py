@@ -1,6 +1,7 @@
 import json
 from pprint import pprint
 from traceback import print_exc
+import traceback
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy import text
@@ -18,15 +19,24 @@ BANNER = "="*20
 class DBManager:
     def __init__(self) -> None:
         with open("db_cred.json", 'r') as f:
-            config = json.load(f)
+            self.config = json.load(f)
 
         # Connect to the database
-        connections_path = f"mysql+pymysql://{config['user']}:{config['password']}@{config['host']}/{config['db']}"
+        self.connections_path = f"mysql+pymysql://{self.config['user']}:{self.config['password']}@{self.config['host']}"
         self.table_name = 'tellco_users_scores'
-        self.engine = create_engine(connections_path)
+        self.engine = create_engine(self.connections_path)
+
+    def create_database(self):
+        try:
+            with self.engine.connect() as conn:
+                conn.execute(f"CREATE DATABASE IF NOT EXISTS {self.config['db']}")
+            self.connections_path = f"mysql+pymysql://{self.config['user']}:{self.config['password']}@{self.config['host']}/{self.config['db']}"
+            self.engine = create_engine(self.connections_path)
+        except:
+            print("Unable to create database")
+            print(traceback.print_exc())
 
     # Create the tables
-
     def create_table(self):
 
         try:
@@ -40,7 +50,7 @@ class DBManager:
             print(print_exc())
 
     def get_df(self):
-        loader = DataLoader('../data', CSV_PATH)
+        loader = DataLoader('./', CSV_PATH)
         df = loader.read_csv()
         print("Got the dataframe")
         cleaner = CleanDataFrame()
@@ -81,6 +91,8 @@ class DBManager:
             return self.get_tellco_users_data()
 
     def setup(self):
+        print(f"Creating new database named {self.config['db']}")
+        self.create_database()
         print("Creating Table...")
         self.create_table()
         df = self.get_df()
