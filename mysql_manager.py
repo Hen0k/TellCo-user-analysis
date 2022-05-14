@@ -55,6 +55,7 @@ class DBManager:
         print("Got the dataframe")
         cleaner = CleanDataFrame()
         df = cleaner.fix_datatypes(df, column='MSISDN/Number', to_type=str)
+        df = df.iloc[:, 1:]
         print("Done Cleaning")
         return df
 
