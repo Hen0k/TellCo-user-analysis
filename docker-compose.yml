@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+    db:
+      hostname: sql_db
+      image: mysql:5.7
+      secrets:
+      - db_root_password
+      - db_henok_password
+      ports:
+        - "32000:3306"
+      
+      environment:
+        
+        MYSQL_USER: henok
+        MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+        MYSQL_PASSWORD_FILE: /run/secrets/db_henok_password
+        MYSQL_DATABASE: tellco
+      networks:
+        - tellco_containers_netword
+
+    streamlit-dashboard:
+      image: dashboard:tellco
+      build: . 
+      depends_on:
+        - "db"
+      links:
+        - "db:database"
+      networks:
+        - tellco_containers_netword
+      ports:
+        - "8501:8501"
+
+secrets:
+  db_root_password:
+    external: true
+  db_henok_password:
+    external: true    
+
+networks:
+  tellco_containers_netword:
+    driver: bridge
