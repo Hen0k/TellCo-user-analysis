@@ -132,3 +132,5 @@ dmypy.json
 /data
 
 .vscode/
+
+db_cred.json
