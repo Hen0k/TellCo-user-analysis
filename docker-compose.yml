@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+    db:
+      hostname: sql_db
+      image: mysql:5.7
+      ports:
+        - "32000:3306"
+      
+      environment:
+        
+        MYSQL_USER: henok
+        MYSQL_PASSWORD: qenka2t4ad50a
+        MYSQL_ROOT_PASSWORD: 
+        MYSQL_DATABASE: tellco
+        MYSQL_RANDOM_ROOT_PASSWORD: yes
+      networks:
+        - tellco_containers_netword
+
+    streamlit-dashboard:
+      image: dashboard:tellco
+      build: . 
+      depends_on:
+        - "db"
+      links:
+        - "db:database"
+      networks:
+        - tellco_containers_netword
+      ports:
+        - "8501:8501"
+ 
+
+networks:
+  tellco_containers_netword:
+    driver: bridge

@@ -29,7 +29,8 @@ class DBManager:
     def create_database(self):
         try:
             with self.engine.connect() as conn:
-                conn.execute(f"CREATE DATABASE IF NOT EXISTS {self.config['db']}")
+                conn.execute(
+                    f"CREATE DATABASE IF NOT EXISTS {self.config['db']}")
             self.connections_path = f"mysql+pymysql://{self.config['user']}:{self.config['password']}@{self.config['host']}/{self.config['db']}"
             self.engine = create_engine(self.connections_path)
         except:
@@ -61,7 +62,7 @@ class DBManager:
 
     # Populate the tables
     def insert_data(self, df: pd.DataFrame):
-        
+
         try:
             with self.engine.connect() as conn:
                 df.to_sql(name=self.table_name, con=conn,
@@ -100,6 +101,7 @@ class DBManager:
         print("Inserting Records...")
         self.insert_data(df)
         print(f"{BANNER} Done setting up Database! {BANNER}")
+
 
 if __name__ == "__main__":
     db_manager = DBManager()
