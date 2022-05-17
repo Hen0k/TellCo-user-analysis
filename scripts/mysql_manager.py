@@ -7,11 +7,11 @@ from sqlalchemy import create_engine
 from sqlalchemy import text
 from sqlalchemy import inspect
 
-from scripts.utils import (DataLoader,
-                           CleanDataFrame)
+from scripts.cleanining import CleanDataFrame
+from scripts.utils import DataLoader
 
 
-SCHEMA = "scored_users_schema.sql"
+SCHEMA = "schemas/scored_users_schema.sql"
 CSV_PATH = "data/user_data_with_score.csv"
 BANNER = "="*20
 
