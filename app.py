@@ -1,5 +1,5 @@
 import streamlit as st
-from mysql_manager import DBManager
+from scripts.mysql_manager import DBManager
 
 
 st.set_page_config(layout="wide")

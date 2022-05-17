@@ -1,0 +1,4 @@
+outs:
+- md5: 35873a683cdc71703228ea4da97f88bf
+  size: 8514684
+  path: user_data_with_score.csv
