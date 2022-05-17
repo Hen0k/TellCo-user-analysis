@@ -128,9 +128,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-/models
-/data
+# /models
+# /data
 
 .vscode/
 
 db_cred.json
+/data
+/models
