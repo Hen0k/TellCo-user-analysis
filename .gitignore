@@ -134,5 +134,5 @@ dmypy.json
 .vscode/
 
 db_cred.json
-/data
-/models
+# /data
+# /models
