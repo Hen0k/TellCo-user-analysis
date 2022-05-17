@@ -1,0 +1,4 @@
+outs:
+- md5: f9008cabb0315b69e0df29f722e0edfa
+  size: 426578
+  path: eng_exp_clustering_model.joblib
